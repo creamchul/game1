@@ -54,27 +54,34 @@ def create_avatar(stats):
 
 def display_status(stats):
     """현재 상태를 보여주는 함수"""
+    # 음수 값이 되지 않도록 모든 스탯 값 확인 및 조정
+    safe_stats = stats.copy()
+    safe_stats['체력'] = max(0, min(100, safe_stats['체력']))
+    safe_stats['스트레스'] = max(0, min(100, safe_stats['스트레스']))
+    safe_stats['연애도'] = max(0, min(100, safe_stats['연애도']))
+    safe_stats['돈'] = max(0, safe_stats['돈'])
+    
     # 아바타 표시
-    st.markdown(f"<h1 style='text-align: center; font-size: 4rem;'>{create_avatar(stats)}</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align: center; font-size: 4rem;'>{create_avatar(safe_stats)}</h1>", unsafe_allow_html=True)
     
     # 스탯 표시
     col1, col2 = st.columns(2)
     
     with col1:
         st.markdown(f"### {ICONS['체력']} 체력")
-        st.progress(stats['체력']/100, text=f"{stats['체력']}/100")
+        st.progress(safe_stats['체력']/100, text=f"{safe_stats['체력']}/100")
         
         st.markdown(f"### {ICONS['스트레스']} 스트레스")
-        stress_color = "normal" if stats['스트레스'] < 70 else "off"
-        st.progress(stats['스트레스']/100, text=f"{stats['스트레스']}/100")
+        stress_color = "normal" if safe_stats['스트레스'] < 70 else "off"
+        st.progress(safe_stats['스트레스']/100, text=f"{safe_stats['스트레스']}/100")
     
     with col2:
         st.markdown(f"### {ICONS['돈']} 재정 상태")
-        money_percentage = min(stats['돈'] / 100000, 1.0)  # 10만원을 100%로 설정
-        st.progress(money_percentage, text=f"{stats['돈']}원")
+        money_percentage = min(max(0, safe_stats['돈']) / 100000, 1.0)  # 10만원을 100%로 설정, 음수 방지
+        st.progress(money_percentage, text=f"{safe_stats['돈']}원")
         
         st.markdown(f"### {ICONS['연애도']} 연애도")
-        st.progress(stats['연애도']/100, text=f"{stats['연애도']}/100")
+        st.progress(safe_stats['연애도']/100, text=f"{safe_stats['연애도']}/100")
     
     # 상태 그래프 (히스토리가 있을 경우)
     if 'stats_history' in st.session_state and len(st.session_state.stats_history) > 1:
@@ -355,13 +362,13 @@ def main():
             # 다음 날로 넘어감
             st.session_state.day += 1
             
-            # 스탯 기록
+            # 스탯 기록 (음수 값이 들어가지 않도록 보정)
             st.session_state.stats_history.append({
                 "day": st.session_state.day,
-                "체력": st.session_state.stats["체력"],
-                "스트레스": st.session_state.stats["스트레스"],
+                "체력": max(0, st.session_state.stats["체력"]),
+                "스트레스": max(0, st.session_state.stats["스트레스"]),
                 "돈": st.session_state.stats["돈"],
-                "연애도": st.session_state.stats["연애도"]
+                "연애도": max(0, st.session_state.stats["연애도"])
             })
             
             st.rerun()
@@ -375,6 +382,9 @@ def main():
         </div>
         """, unsafe_allow_html=True)
         st.write(f"생존 일수: {st.session_state.day}일")
+        
+        # 게임 오버 화면에서도 상태 표시 (에러 방지를 위해)
+        display_status(st.session_state.stats)
     
     if st.session_state.game_win:
         st.balloons()
@@ -384,6 +394,10 @@ def main():
             <h2 style='color: green;'>축하합니다! 30일 동안 회사원으로 살아남았습니다!</h2>
         </div>
         """, unsafe_allow_html=True)
+        
+        # 최종 상태 표시 (에러 방지를 위해)
+        display_status(st.session_state.stats)
+        
         st.write(f"최종 체력: {st.session_state.stats['체력']}")
         st.write(f"최종 스트레스: {st.session_state.stats['스트레스']}")
         st.write(f"최종 돈: {st.session_state.stats['돈']}원")
