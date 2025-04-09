@@ -119,7 +119,7 @@ def main():
         if st.button("게임 시작하기"):
             st.session_state.game_started = True
             st.session_state.message_history.append("게임을 시작합니다!")
-            st.experimental_rerun()
+            st.rerun()
     
     # 게임 리셋 버튼
     if st.session_state.game_over or st.session_state.game_win:
@@ -135,7 +135,7 @@ def main():
                 "연애도": 10
             }
             st.session_state.message_history = []
-            st.experimental_rerun()
+            st.rerun()
     
     # 게임 진행
     if st.session_state.game_started and not st.session_state.game_over and not st.session_state.game_win:
@@ -150,14 +150,14 @@ def main():
             st.error(game_over_message)
             st.session_state.game_over = True
             st.session_state.message_history.append(game_over_message)
-            st.experimental_rerun()
+            st.rerun()
         
         # 승리 체크
         if st.session_state.day > 30:
             st.success("축하합니다! 30일 동안 회사원으로 살아남았습니다!")
             st.session_state.game_win = True
             st.session_state.message_history.append("축하합니다! 30일 동안 회사원으로 살아남았습니다!")
-            st.experimental_rerun()
+            st.rerun()
         
         # 행동 선택
         st.subheader("오늘은 무엇을 하시겠습니까?")
@@ -196,7 +196,7 @@ def main():
             
             # 다음 날로 넘어감
             st.session_state.day += 1
-            st.experimental_rerun()
+            st.rerun()
     
     # 게임 종료 화면
     if st.session_state.game_over:
